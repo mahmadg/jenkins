@@ -5,4 +5,4 @@ yum -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker
 systemctl enable docker --now
 
 docker run --rm -dit --name jenkins -p 8080:8080 -p 50000:50000 jenkins/jenkins
-
+docker run --rm -dit --name web-server -p 80:80 httpd --restart always
