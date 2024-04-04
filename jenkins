@@ -6,3 +6,19 @@ systemctl enable docker --now
 
 docker run --rm -dit --name jenkins -p 8080:8080 -p 50000:50000 jenkins/jenkins
 docker run --rm -dit --name web-server -p 80:80 httpd --restart always
+
+
+=========================== Jenkins on rhel9 ==============================
+dnf -y update
+reboot
+dnf -y install java-11-openjdk-devel
+rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
+sh -c 'echo -e "[jenkins]\nname=Jenkins\nbaseurl=https://pkg.jenkins.io/redhat-stable\nenabled=1\ngpgcheck=1" > /etc/yum.repos.d/jenkins.repo'
+dnf -y install jenkins
+firewall-cmd --zone=public --add-port=8080/tcp --permanent
+firewall-cmd --reload
+systemctl enable jenkins --now
+Unlock Jenkins: cat /var/lib/jenkins/secrets/initialAdminPassword
+Access Jenkins: http://your_server_ip_or_domain:8080
+
+
