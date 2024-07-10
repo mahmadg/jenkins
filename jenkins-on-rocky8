@@ -1,0 +1,19 @@
+# Remove any existing Jenkins repo
+sudo rm -f /etc/yum.repos.d/jenkins.repo
+
+# Add Jenkins repo with correct GPG key
+sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+# Clear yum cache
+sudo yum clean all
+
+# Install Jenkins
+sudo yum install jenkins -y
+
+# Start and enable Jenkins service
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+
+# Check Jenkins service status
+sudo systemctl status jenkins
