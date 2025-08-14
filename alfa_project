@@ -1,4 +1,4 @@
-Alfa DevOps Dummy Project
+==========Alfa DevOps Dummy Project=============
 An Overview:
 In this Project as a developer I will push my code to git hub and Jenkins will pull this code and execute the CI job where Ansible will be able to get the war file and create an image out of it and push that image to docker hub and then delete that image, Then Jenkins will execute CD job and Ansible will initiate deployment and service file on Kubernetes, and it will create pods out of it. This whole process will be fully automated where only initial push to git will be done and the rest will be Continues Integration and Continues deployment through Jenkins without any human intervention. This Project will be built on AWS and to create this pipeline we will need Jenkins Server, Docker Server, Ansible Server and Kubernetes Server with one Master and 2 Worker nodes. 
 The whole Process to create this pipeline is as follows; 
@@ -9,7 +9,7 @@ Prerequisites
 o	With Internet Access
 o	Security Group with Port 8080 open for internet
 2.	Java v1.8.x
-Install Java
+=============== Install Java ================
 1.	We will be using open java for our demo, Get the latest version from http://openjdk.java.net/install/
 yum install java-1.8*
 #yum -y install java-1.8.0-openjdk-devel
@@ -26,14 +26,14 @@ The output should be something like this,
 openjdk version "1.8.0_151"
 OpenJDK Runtime Environment (build 1.8.0_151-b12)
 OpenJDK 64-Bit Server VM (build 25.151-b12, mixed mode)
-Install Jenkins
+================ Install Jenkins =====================
 You can install jenkins using the rpm or by setting up the repo. We will set up the repo so that we can update it easily in the future.
 1.	Get the latest version of jenkins from https://pkg.jenkins.io/redhat-stable/ and install
 •	yum -y install wget
 •	sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
 •	sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
 •	yum -y install jenkins
-Start Jenkins
+============== Start Jenkins ================
 # Start jenkins service
 service jenkins start
 
@@ -60,7 +60,7 @@ Test Jenkins Jobs
 5.	Save your job
 6.	Build job
 7.	Check "console output"
-Install & configure Maven build tool on Jenkins
+================ Install & configure Maven build tool on Jenkins ===========================
 Maven is a code build tool which used to convert your code to an artifact. this is a widely used plugin to build in continuous integration
 Prerequisites
 1.	Jenkins server
@@ -78,7 +78,7 @@ Install Maven on Jenkins
 •	M2_HOME=/opt/maven/apache-maven-3.6.1
 •	M2=$M2_HOME/bin
 o	PATH=<Existing_PATH>:$M2_HOME:$M2
-Checkpoint
+============= Checkpoint =======================
 1.	logoff and login to check maven version
 mvn --version
 So far we have completed the installation of maven software to support maven plugin on the jenkins console. Let's jump onto Jenkins to complete the remaining steps.
@@ -101,7 +101,7 @@ o	Manage Jenkins > Jenkins Plugins > available > github
 •	Configure git path
 o	Manage Jenkins > Global Tool Configuration > git
 
-Ansible Installation
+==================== Ansible Installation ==========================
 Ansible is an open-source automation platform. It is very, very simple to set up and yet powerful. Ansible can help you with configuration management, application deployment, task automation.
 Pre-requisites
 1.	An AWS EC2 instance (on Control node)
