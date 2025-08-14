@@ -1,0 +1,483 @@
+Alfa DevOps Dummy Project
+An Overview:
+In this Project as a developer I will push my code to git hub and Jenkins will pull this code and execute the CI job where Ansible will be able to get the war file and create an image out of it and push that image to docker hub and then delete that image, Then Jenkins will execute CD job and Ansible will initiate deployment and service file on Kubernetes, and it will create pods out of it. This whole process will be fully automated where only initial push to git will be done and the rest will be Continues Integration and Continues deployment through Jenkins without any human intervention. This Project will be built on AWS and to create this pipeline we will need Jenkins Server, Docker Server, Ansible Server and Kubernetes Server with one Master and 2 Worker nodes. 
+The whole Process to create this pipeline is as follows; 
+Install Jenkins on AWS EC2
+Jenkins is a self-contained Java-based program, ready to run out-of-the-box, with packages for Windows, Mac OS X and other Unix-like operating systems. As an extensible automation server, Jenkins can be used as a simple CI server or turned into the continuous delivery hub for any project.
+Prerequisites
+1.	EC2 Instance
+o	With Internet Access
+o	Security Group with Port 8080 open for internet
+2.	Java v1.8.x
+Install Java
+1.	We will be using open java for our demo, Get the latest version from http://openjdk.java.net/install/
+yum install java-1.8*
+#yum -y install java-1.8.0-openjdk-devel
+2.	Confirm Java Version and set the java home
+•	java -version
+•	find /usr/lib/jvm/java-1.8* | head -n 3
+•	JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-<Java version which seen in the above output>
+•	export JAVA_HOME
+•	PATH=$PATH:$JAVA_HOME
+ # To set it permanently update your .bash_profile
+•	vi ~/.bash_profile
+The output should be something like this,
+[root@~]# java -version
+openjdk version "1.8.0_151"
+OpenJDK Runtime Environment (build 1.8.0_151-b12)
+OpenJDK 64-Bit Server VM (build 25.151-b12, mixed mode)
+Install Jenkins
+You can install jenkins using the rpm or by setting up the repo. We will set up the repo so that we can update it easily in the future.
+1.	Get the latest version of jenkins from https://pkg.jenkins.io/redhat-stable/ and install
+•	yum -y install wget
+•	sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+•	sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+•	yum -y install jenkins
+Start Jenkins
+# Start jenkins service
+service jenkins start
+
+# Setup Jenkins to start at boot,
+chkconfig jenkins on
+Accessing Jenkins
+By default jenkins runs at port 8080, You can access jenkins at
+http://YOUR-SERVER-PUBLIC-IP:8080
+Configure Jenkins
+•	The default Username is admin
+•	Grab the default password
+•	Password Location:/var/lib/jenkins/secrets/initialAdminPassword
+•	Skip Plugin Installation; We can do it later
+•	Change admin password
+o	Admin > Configure > Password
+•	Configure java path
+o	Manage Jenkins > Global Tool Configuration > JDK
+•	Create another admin user id
+Test Jenkins Jobs
+1.	Create “new item”
+2.	Enter an item name – My-First-Project
+3.	Chose Freestyle project
+4.	Under the Build section Execute shell: echo "Welcome to Jenkins Demo"
+5.	Save your job
+6.	Build job
+7.	Check "console output"
+Install & configure Maven build tool on Jenkins
+Maven is a code build tool which used to convert your code to an artifact. this is a widely used plugin to build in continuous integration
+Prerequisites
+1.	Jenkins server
+Install Maven on Jenkins
+1.	Download maven packages https://maven.apache.org/download.cgi onto Jenkins server. In this case, I am using /opt/maven as my installation directory
+•	Link : https://maven.apache.org/download.cgi
+•	 # Creating maven directory under /opt
+•	 mkdir /opt/maven
+•	 cd /opt/maven
+•	 # downloading maven version 3.6.0
+•	 wget wget https://archive.apache.org/dist/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz
+•	 tar -xvzf apache-maven-3.6.1-bin.tar.gz
+1.	Setup M2_HOME and M2 paths in .bash_profile of the user and add these to the path variable
+•	vi ~/.bash_profile
+•	M2_HOME=/opt/maven/apache-maven-3.6.1
+•	M2=$M2_HOME/bin
+o	PATH=<Existing_PATH>:$M2_HOME:$M2
+Checkpoint
+1.	logoff and login to check maven version
+mvn --version
+So far we have completed the installation of maven software to support maven plugin on the jenkins console. Let's jump onto Jenkins to complete the remaining steps.
+Setup maven on Jenkins console
+1.	Install maven plugin without restart
+•	Manage Jenkins > Jenkins Plugins > available > Maven Invoker
+•	Manage Jenkins > Jenkins Plugins > available > Maven Integration
+2.	Configure maven path
+•	Manage Jenkins > Global Tool Configuration > Maven
+Configure Git pulgin on Jenkins
+Git is one of the most popular tools for version control system. you can pull code from git repositories using jenkins if you use github plugin.
+Prerequisites
+1.	Jenkins server
+Install Git on Jenkins server
+1.	Install git packages on jenkins server
+yum install git -y
+Setup Git on Jenkins console
+•	Install git plugin without restart
+o	Manage Jenkins > Jenkins Plugins > available > github
+•	Configure git path
+o	Manage Jenkins > Global Tool Configuration > git
+
+Ansible Installation
+Ansible is an open-source automation platform. It is very, very simple to set up and yet powerful. Ansible can help you with configuration management, application deployment, task automation.
+Pre-requisites
+1.	An AWS EC2 instance (on Control node)
+Installation steps:
+on Amazon EC2 instance
+1.	Install python and python-pip
+yum install python
+yum install python-pip
+2.	Install ansible using pip check for version
+pip install ansible
+ansible --version
+3.	Create a user called ansadmin (on Control node and Managed host)
+useradd ansadmin
+passwd ********
+4.	Below command grant sudo access to ansadmin user. But we strongly recommended using "visudo" command if you are aware vi or nano editor. (on Control node and Managed host)
+echo "ansadmin ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+5.	Log in as a ansadmin user on master and generate ssh key (on Control node)
+sudo su - ansadmin
+ssh-keygen
+6.	Copy keys onto all ansible managed hosts (on Control node)
+ssh-copy-id ansadmin@<target-server> 
+(here managed hosts will be docker server, Kubernetes server and localhost)
+7.	Ansible server used to create images and store on docker registry. Hence install docker, start docker services and add ansadmin to the docker group.
+yum install docker
+# start docker services 
+service docker start
+# add user to docker group 
+usermod -aG docker ansadmin
+8.	Create a directory /etc/ansible and create an inventory file called "hosts" add control node and managed hosts IP addresses to it.
+Validation test
+Run ansible command as ansadmin user it should be successful (Master)
+ansible all -m ping
+Ansible integration with Jenkins
+Integration Setps
+Install "publish Over SSH"
+•	Manage Jenkins > Manage Plugins > Available > Publish over SSH
+Enable connection between Ansible and Jenkins
+•	Manage Jenkins > Configure System > Publish Over SSH > SSH Servers
+o	SSH Servers:
+	Hostname:<ServerIP>
+	username: ansadm
+	password: *******
+Test the connection "Test Connection"
+
+
+Installing Docker on Amazon Linux server
+Pre-requisites
+1.	Amazon Linux EC2 Instance
+Installation Steps
+Install docker and start docker services
+•	yum install docker -y
+•	docker --version 
+•	# start docker services
+•	service docker start
+•	service docker status
+Create a user called dockeradmin
+•	useradd dockeradmin
+•	passwd **********
+•	add a user to docker group to manage docker
+•	usermod -aG docker dockeradmin
+Validation test
+1.	Create a tomcat docker container by pulling a docker image from the public docker registry
+docker run -d --name test-tomcat-server -p 8090:8080 tomcat:latest
+Docker Installation on Centos
+Referance URL : https://docs.docker.com/install/linux/docker-ce/centos/#install-using-the-repository
+Pre-requisites
+Please follow below steps to install docker CE on CentoOS server instance. For RedHat only Docker EE available
+1.	Install the required packages.
+sudo yum install -y yum-utils \
+device-mapper-persistent-data \lvm2
+2.	Use the following command to set up the stable repository.
+sudo yum-config-manager \--add-repo \
+https://download.docker.com/linux/centos/docker-ce.repo
+INSTALLING DOCKER CE
+1.	Install the latest version of Docker CE.
+sudo yum install docker-ce
+Note: If prompted to accept the GPG key, verify that the fingerprint matches 060A 61C5 1B55 8A7F 742B 77AA C52F EB6B 621E 9F35, and if so, accept it.
+2.	Start Docker.
+sudo systemctl start docker
+3.	Verify that docker is installed correctly by running the hello-world image.
+sudo docker run hello-world
+Dockerfile to pull latest image
+# pull tomcat latest image from dockerhub
+From tomcat:latest
+
+#Maintainer
+MAINTAINER “Waqas Gill”
+# Copy war file on container
+COPY ./webapp.war /usr/local/tomcat/webapps
+
+Deploy on Docker host server using Jenkins
+Jenkins Job name: Deploy_on_Docker_Host
+Pre-requisites
+1.	Jenkins server
+2.	Docker-host Server
+Integration between Docker-host and Jenkins
+Install "publish Over SSH"
+•	Manage Jenkins > Manage Plugins > Available > Publish over SSH
+Enable connection between Docker-host and Jenkins
+•	Manage Jenkins > Configure System > Publish Over SSH > SSH Servers
+o	SSH Servers: - Name: docker-host
+	Hostname:<ServerIP>
+	username: dockeradmin
+	Advanced > chose Use password authentication, or use a different key
+	password: *******
+Steps to create "Deploy_on_Docker_Host" Jenkin job
+From Jenkins home page select "New Item"
+•	Enter an item name: Deploy_on_Docker_Host
+o	Copy from: Deploy_on_Tomcat_Server
+•	Source Code Management:
+o	Repository: https://github.com/waqasgill17/hello-world.git
+o	Branches to build : */master
+•	Poll SCM : - * * * *
+•	Build:
+o	Root POM:pom.xml
+o	Goals and options: clean install package
+•	Post-build Actions
+o	Send build artifacts over SSH
+	SSH Publishers
+	SSH Server Name: docker-host
+	Transfers > Transfer set
+	Source files: webapp/target/*.war
+	Remove prefix: webapp/target
+	Remote directory: //home//ansadmin or .
+Deploy on a docker container using Ansible
+Jenkins Job name: Deploy_on_Container_using_ansible
+Pre-requisites
+1.	Jenkins server
+2.	Docker-host server
+3.	Ansible server
+4.	Dockerfile under /opt/docker on Ansible server  
+# Pull tomcat latest image from dockerhub 
+From tomcat
+# Maintainer
+MAINTAINER "Waqas Gill" 
+# copy war file on to container 
+COPY ./webapp.war /usr/local/tomcat/webapps
+5.	Create Ansible Playbook create-docker-image.yml under /opt/docker on Ansible server  
+---
+- hosts: all
+  #ansadmin doesn't need root access to create an image
+  become: true 
+
+  tasks:
+  - name: building docker image
+    command: "docker build -t devops-image ." 
+    args:
+      chdir: /opt/docker
+6.	Create create-docker-image.yml under /opt/docker on Ansible server 
+---
+- hosts: all
+  become: ture
+
+  tasks:
+  - name: creating docker image using docker command
+    command: docker run -d --name devops-container -p 8080:8080 devops-image
+Integration between Ansible-control-node and Jenkins
+Install "publish Over SSH"
+•	Manage Jenkins > Manage Plugins > Available > Publish over SSH
+Enable connection between Ansible-control-node and Jenkins
+•	Manage Jenkins > Configure System > Publish Over SSH > SSH Servers
+o	SSH Servers: - Name: ansible-server
+	Hostname:<ServerIP>
+	username: ansadmin
+	Advanced > chose Use password authentication, or use a different key
+	password: *******
+Steps to create "Deploy_on_Container_using_ansible" Jenkin job
+From Jenkins home page select "New Item"
+•	Enter an item name: Deploy_on_Container_using_ansible
+o	Copy from: Deploy_on_Container
+•	Source Code Management:
+o	Repository: https://github.com/waqasgill17/hello-world.git
+o	Branches to build : */master
+•	Poll SCM : - * * * *
+•	Build:
+o	Root POM:pom.xml
+o	Goals and options: clean install package
+•	Post-build Actions
+o	Send build artifacts over SSH
+	SSH Publishers
+	SSH Server Name: ansible-server
+	Transfers > Transfer set
+	Source files: webapp/target/*.war
+	Remove prefix: webapp/target
+	Remote directory: //opt//docker
+	Exec command:
+ansible-playbook -i /opt/docker/hosts /opt/docker/create-docker-image.yml;
+save and run the job.
+Setup Kubernetes (K8s) Cluster on AWS
+1.	Create Ubuntu EC2 instance
+2.	install AWSCLI
+•	 curl https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -o awscli-bundle.zip
+•	 apt install unzip python
+•	 unzip awscli-bundle.zip
+•	 #sudo apt-get install unzip - if you dont have unzip in your system
+ ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+3.	Install kubectl on ubuntu instance
+•	curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+•	 chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+4.	Install kops on ubuntu instance (kops are required for AWS)
+•	 curl -LO  https://github.com/kubernetes/kops/releases/download/1.15.0/kops-linux-amd64
+•	 chmod +x kops-linux-amd64
+•	 sudo mv kops-linux-amd64 /usr/local/bin/kops
+•	 kops version (it should be 1.15.0 or higher)
+•	 Note: use below command if you wish to use latest version. For now we could see latest version of kops. So ignore it until further update. 
+•	 # curl -LO https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+5.	Create an IAM user/role with Route53, EC2, IAM and S3 full access
+6.	Attach IAM role to ubuntu instance
+7.	# Note: If you create IAM user with programmatic access then provide Access keys. Otherwise region information is enough
+aws configure
+8.	Create a Route53 private hosted zone (you can create Public hosted zone if you have a domain)
+9.	Routeh53 --> hosted zones --> created hosted zone  
+10.	Domain Name: alfa.com
+Type: Private hosted zone for Amazon VPC. Make sure you are chosing right VPC if you have multiple
+11.	create an S3 bucket
+ aws s3 mb s3://demo.k8s.alfa.com
+12.	Expose environment variable:
+ export KOPS_STATE_STORE=s3://demo.k8s.alfa.com
+13.	Create sshkeys before creating cluster
+ ssh-keygen
+14.	Create kubernetes cluster definitions on S3 bucket
+kops create cluster --cloud=aws --zones=us-east-1 --name=demo.k8s.alfa.com --dns-zone=alfa.com --dns private #(note choose your zone, my zone was us-east-1 which is N.Virgina zone)
+15.	Create kubernetes cluser
+kops update cluster demo.k8s.alfa.com --yes
+16.	To cahnge the kubernetes master and worker instance sizes
+17.	kops edit ig --name=<cluster_name> nodes
+18.	#kops edit ig --name=demo.k8s.alfa.com nodes 
+19.	kops edit ig --name=<cluster_name> master-<zone_name>
+#kops edit ig --name=demo.k8s.alfa.com master-us-east-1
+20.	to Delete cluster (try once your lab is done)
+kops delete cluster <cluster_name> --yes
+21.	Validate your cluster
+ kops validate cluster
+22.	To list nodes
+kubectl get nodes
+Deploying Nginx pods on Kubernetes
+1.	Deploying Nginx Container
+•	kubectl run --generator=run-pod/v1 sample-nginx --image=nginx --replicas=2 --port=80
+•	#kubectl run sample-nginx --image=nginx --replicas=2 --port=80
+•	# kubectl run simple-devops-project --image=waqasgill17/devops-image --replicas=2 --port=8080
+•	kubectl get pods
+•	kubectl get deployments
+2.	Expose the deployment as service. This will create an ELB in front of those 2 containers and allow us to publicly access them.
+•	kubectl expose deployment sample-nginx --port=80 --type=LoadBalancer
+•	# kubectl expose deployment devops-project --port=8080 --type=LoadBalancer
+•	kubectl get services -o wide
+
+Integrating Kubernetes cluster with Ansible
+1.	Login to ansible server and copy public key onto kubernetes cluseter master account
+2.	Update hosts file with new group called kubernetes and add kubernetes master in that.
+3.	Create ansible playbooks to create deployment and service 
+4.	Check for pods, deployments and services on kubernetes master
+•	kubectl get pods -o wide 
+•	kubectl get deploy -o wide
+•	kubectl get service -o wide
+5.	Access application suing service IP
+wget <kubernetes-Master-IP>:31200
+
+Ansible Playbooks for deployment and Service on Ansible control node
+
+---
+	- name: Create pods using deployment 
+	  hosts: kubernetes 
+	  # become: true
+	  user: ubuntu
+	
+	  tasks: 
+	  - name: create a deployment
+	    command: kubectl apply -f alfa-deploy.yml
+	 
+	  - name: update deployment with new pods if image updated in docker hub
+	    command: kubectl rollout restart deployment.v1.apps/alfa-deployment
+# Note: Kubectl rollout only needed if there existing deployment and pods are running and you want to delete the old pods and want to deploy latest application 
+
+ Playbook to create service:
+---
+	- name: create service for deployment
+	  hosts: Kubernetes
+	  # become: true
+	  user: ubuntu
+	
+
+	  tasks:
+	  - name: create a service
+	    command: kubectl apply -f alfa-service.yml
+
+
+Creating Deployment and Service on K8s Management Server using yml files
+Alfa-deploy.yml:
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: alfa-deployment
+spec:
+  selector:
+    matchLabels:
+      app: alfa-devops-project
+  replicas: 2 # tells deployment to run 2 pods matching the template
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+
+  template:
+    metadata:
+      labels:
+        app: alfa-devops-project
+    spec:
+      containers:
+      - name: alfa-devops-project
+        image: waq17/devops-image
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+Alfa-service.yml:
+apiVersion: v1
+kind: Service
+metadata:
+  name: alfa-service
+  labels:
+    app: alfa-devops-project
+spec:
+  selector:
+    app: alfa-devops-project
+  type: LoadBalancer
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 31200
+
+Integration Kubernetes with Jenkins
+Jenkins CI Job: Deploy_on_Kubernetes-CI
+Pre-requisites
+1.	Jenkins server
+2.	Ansible server
+3.	Kubernetes cluster
+Steps to create "Deploy_on_Kubernetes_CI" Jenkin job
+From Jenkins home page select "New Item"
+•	Enter an item name: Deploy_on_Kubernetes_CI
+o	Copy from: Deploy_on_Docker_Container_using_Ansible
+•	Source Code Management:
+o	Repository: https://github.com/waqasgill17/hello-world.git
+o	Branches to build : */master
+•	Poll SCM : - * * * *
+•	Build:
+o	Root POM:pom.xml
+o	Goals and options: clean install package
+•	Post-build Actions
+o	Send build artifacts over SSH
+	SSH Publishers
+	SSH Server Name: ansible-server
+	Transfers > Transfer set
+	Source files: webapp/target/*.war
+	Remove prefix: webapp/target
+	Remote directory: //opt//docker
+	Exec command:
+ansible-playbook -i /opt/docker/hosts /opt/docker/create-simple-devops-image.yml --limit localhost;
+Save and run the job.
+Jenkins CD Job: Deploy_on_Kubernetes-CD
+Steps to create "Deploy_on_Kubernetes_CI" Jenkin job
+From Jenkins home page select "New Item"
+•	Enter an item name: Deploy_on_Kubernetes_CI
+Freestyle Project
+
+•	Post-build Actions
+Send build artifacts over SSH
+
+SSH Publishers
+Exec command:
+o	ansible-playbook -i /opt/docker/hosts /opt/docker/kubernetes-alfa-deployment.yml;
+o	ansible-playbook -i /opt/docker/hosts /opt/docker/kubernetes-alfa-service.yml;
+
+
+Conclusion:
+            I have completed our Alfa Dummy DevOps Project using above documentation and our dummy application is up and running. Here I just pushed the code to git hub and Jenkins pull the code and execute the CI job where Ansible got the war file and create an image out of it and pushed that image to docker hub and then deleted that image, Then Jenkins executed CD job and Ansible initiated deployment and service file on Kubernetes, and it created pods out of it. This whole process is fully automated where only initial push to git was done and the rest was Continues Integration and Continues deployment through Jenkins without any human intervention. 
+
+I also have attached a Microsoft stream link of a demo video I created which shows this whole CI/CD process through Jenkins. 
