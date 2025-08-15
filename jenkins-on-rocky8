@@ -27,3 +27,16 @@ source /etc/profile.d/maven.sh
 sudo ssh-keygen -t ed25519
 vim /etc/passwd
 jenkins:x:975:974:Jenkins Automation Server:/var/lib/jenkins:/bin/false change to (/bin/bash)
+
+
+================= adding node ===================
+useradd jenkins
+passwd jenkins
+dnf -y install java-17-openjdk-headless
+readlink -f /usr/bin/java
+sudo -u jenkins ssh-keygen -t ed25519 -f /home/jenkins/.ssh/id_ed25519 -N ""
+cat /home/jenkins/.ssh/id_ed25519
+su - jenkins
+mkdir /opt/jenkins && chown -R jenkins:jenkins /opt/jenkins
+
+
