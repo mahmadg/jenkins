@@ -4,7 +4,9 @@ https://www.youtube.com/watch?v=6YZvp2GwT0A
 sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
 sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
 sudo yum upgrade -y
+reboot
 sudo yum install fontconfig java-21-openjdk
+
 sudo yum install jenkins -y
 sudo systemctl daemon-reload
 systemctl enable --now jenkins
@@ -13,3 +15,14 @@ firewall-cmd --add-port=8080/udp --permanent
 firewall-cmd --reload
 setenforce 0
 cat /var/lib/jenkins/secrets/initialAdminPassword
+=============== Maven ====================
+mkdir /opt/maven && cd /opt/maven
+wget https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
+tar -xvzf apache-maven-3.9.6-bin.tar.gz
+echo 'export M2_HOME=/opt/maven' | sudo tee /etc/profile.d/maven.sh
+echo 'export PATH=$M2_HOME/bin:$PATH' | sudo tee -a /etc/profile.d/maven.sh
+source /etc/profile.d/maven.sh
+=============== SSH-KEY ==================
+sudo ssh-keygen -t ed25519
+vim /etc/passwd
+jenkins:x:975:974:Jenkins Automation Server:/var/lib/jenkins:/bin/false change to (/bin/bash)
