@@ -36,7 +36,8 @@ dnf -y install java-17-openjdk-headless
 readlink -f /usr/bin/java
 sudo -u jenkins ssh-keygen -t ed25519 -f /home/jenkins/.ssh/id_ed25519 -N ""
 cat /home/jenkins/.ssh/id_ed25519
-su - jenkins
 mkdir /opt/jenkins && chown -R jenkins:jenkins /opt/jenkins
+su - jenkins
+
 
 
