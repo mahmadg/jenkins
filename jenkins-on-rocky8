@@ -21,7 +21,7 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
 sudo ssh-keygen -t ed25519
 vim /etc/passwd
 jenkins:x:975:974:Jenkins Automation Server:/var/lib/jenkins:/bin/false change to (/bin/bash)
-
+sudo -u jenkins ssh-keygen -t ed25519 -f /home/jenkins/.ssh/id_ed25519 -N ""
 
 =============== Maven ====================
 mkdir /opt/maven && cd /opt/maven
