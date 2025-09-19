@@ -40,6 +40,8 @@ passwd jenkins
 add jenkins user in visudo file
 dnf -y install java-17-openjdk-headless
 readlink -f /usr/bin/java
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-21.0.8.0.9-1.el8.x86_64
+export PATH=$JAVA_HOME/bin:$PATH
 sudo -u jenkins ssh-keygen -t ed25519 -f /home/jenkins/.ssh/id_ed25519 -N ""
 cat /home/jenkins/.ssh/id_ed25519
 mkdir /opt/jenkins && chown -R jenkins:jenkins /opt/jenkins
