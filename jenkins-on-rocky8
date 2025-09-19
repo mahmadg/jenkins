@@ -37,6 +37,7 @@ source /etc/profile.d/maven.sh
 ================= adding node ===================
 useradd jenkins
 passwd jenkins
+add jenkins user in visudo file
 dnf -y install java-17-openjdk-headless
 readlink -f /usr/bin/java
 sudo -u jenkins ssh-keygen -t ed25519 -f /home/jenkins/.ssh/id_ed25519 -N ""
