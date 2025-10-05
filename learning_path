@@ -1,0 +1,121 @@
+🧱 1. Jenkins Basics (Foundations)
+
+You gotta start by really understanding how Jenkins thinks. Learn:
+
+Installation & Configuration (both on local and server)
+
+Jenkins UI navigation — jobs, builds, workspace, console output
+
+Freestyle jobs — how to run shell commands, trigger builds manually, etc.
+
+Build triggers — cron (poll SCM), GitHub webhook, manual, and upstream jobs
+
+Build artifacts — storing, archiving, and sharing between stages
+
+Once you’re comfy with that, move on to pipelines 👇
+
+⚙️ 2. Jenkins Pipelines (Core DevOps Skill)
+
+Pipelines are the real magic. You’ll need to be fluent in:
+
+Declarative vs. Scripted pipelines
+
+Pipeline syntax (pipeline { agent any ... })
+
+Stages, steps, and environment variables
+
+Post actions (success, failure, always)
+
+Parameters (string, boolean, choice, credentials)
+
+Using Jenkinsfile in Git (code as configuration)
+
+Parallel stages — running tests or builds in parallel
+
+👉 You should be able to write a Jenkinsfile from scratch that builds, tests, and deploys a simple app.
+
+🔗 3. Integrations (DevOps Glue)
+
+DevOps is all about tools talking to each other. Learn how Jenkins integrates with:
+
+Git/GitHub/GitLab/Bitbucket for SCM
+
+Docker for building and deploying containers
+
+Ansible for configuration management and deployments
+
+Kubernetes for CI/CD on clusters
+
+Slack/MS Teams for build notifications
+
+JIRA or ServiceNow for tracking
+
+💡 Practice tip: Set up a small Jenkins pipeline that clones code from GitHub, builds a Docker image, pushes it to Docker Hub, and deploys it via Ansible.
+
+🧰 4. Plugins & Extensibility
+
+Jenkins is all about plugins. The must-know ones:
+
+Git Plugin
+
+Pipeline Plugin
+
+Blue Ocean
+
+Credentials Binding
+
+Email Extension
+
+Slack Notifier
+
+Docker Plugin
+
+AnsiColor, Timestamper, etc.
+
+Know how to install, configure, and manage plugin versions (especially in production).
+
+🔒 5. Jenkins Security & Administration
+
+A true DevOps engineer owns their Jenkins environment. Learn:
+
+User authentication & authorization (RBAC)
+
+Credentials management (SSH keys, tokens)
+
+Securing Jenkins with HTTPS
+
+Backup & restore strategies
+
+Scaling Jenkins (master-agent setup)
+
+🐳 6. Jenkins + Docker + Kubernetes
+
+This combo is where modern CI/CD lives. Practice:
+
+Running Jenkins inside Docker
+
+Using Docker agents in pipelines
+
+Deploying to Kubernetes using Jenkins (Jenkins X, or K8s plugin)
+
+Managing Jenkins as code with JCasC (Jenkins Configuration as Code)
+
+📈 7. Real-World CI/CD Scenarios
+
+Now put it all together:
+
+Build → Test → Package → Deploy → Notify
+
+Handle rollback and versioning
+
+Use blue/green or canary deployments
+
+Set up multi-environment pipelines (dev, staging, prod)
+
+🧠 8. Bonus: Automation + Observability
+
+Automate Jenkins updates and plugin management
+
+Set up monitoring with Prometheus + Grafana
+
+Integrate Jenkins logs with ELK / Loki
